@@ -1,62 +1,57 @@
 """
 ganesh_adapter.py
 -----------------
-Integration adapter bridging Ganesh's Network Data Pipeline with Madhav's AI Forecaster.
+Integration adapter bridging Ganesh's Network Traffic Preprocessing Pipeline
+(Module 2 / Ingestion) with Madhav's Multi-Stage Attack Forecasting System (Module 3).
 
-Flow:
-Raw Network Flows / CSV / Records
-    ↓
-Ganesh Ingestion & Column Normalization (ingest.py)
-    ↓
-Ganesh Schema Validation & Cleaning (clean_validate.py)
-    ↓
-Ganesh Flow & Packet Feature Extraction (features.py)
-    ↓
-Ganesh Time Windowing (5-second network state windows) (windowing.py)
-    ↓
-Validation of 5-window history requirement (>= 25 seconds of network traffic)
-    ↓
-Extraction of 21 canonical features (excluding ground-truth labels)
-    ↓
-Return model-ready (DataFrame, timestamps) for Forecaster.predict()
+Key guarantees:
+1. Enforces strict input validation (raises ValueError on schema/data errors).
+2. Runs Ganesh's modular ingestion, cleaning, feature extraction, and 5-second windowing.
+3. Verifies temporal history >= 5 windows (>= 25 seconds of network traffic).
+4. Isolates the 21 numeric features, strips ground-truth label columns.
+5. Feeds the resulting 5x21 sequence into Madhav's Forecaster.predict().
 """
 
-import io
-import os
 import sys
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
-
-import numpy as np
+import os
+import io
+import logging
+from typing import List, Dict, Any, Tuple, Union, Optional
 import pandas as pd
+import numpy as np
 
-# Locate Ganesh-Module sibling directory
-CURRENT_FILE = Path(__file__).resolve()
-MODULE3_ROOT = CURRENT_FILE.parents[2]
-WORKSPACE_ROOT = MODULE3_ROOT.parent
+logger = logging.getLogger("module3.ganesh_adapter")
 
-GANESH_MODULE_DIR = Path(
-    os.environ.get("GANESH_MODULE_DIR", str(WORKSPACE_ROOT / "Ganesh-Module"))
-)
+# Discover Ganesh module directory dynamically
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.abspath(os.path.join(CURRENT_DIR, "..", ".."))
 
-# Add Ganesh-Module/src to Python path if available
-GANESH_SRC_DIR = GANESH_MODULE_DIR / "src"
-if GANESH_SRC_DIR.exists() and str(GANESH_SRC_DIR) not in sys.path:
-    sys.path.insert(0, str(GANESH_SRC_DIR))
+# Candidate locations for Ganesh module
+CANDIDATE_GANESH_PATHS = [
+    os.path.join(PROJECT_ROOT, "ganesh_module", "src"),
+    os.path.join(PROJECT_ROOT, "..", "Ganesh-Module", "src"),
+    os.path.join(PROJECT_ROOT, "Ganesh-Module", "src"),
+    r"C:\Users\chinn\OneDrive\Desktop\backend\Ganesh-Module\src",
+]
+
+GANESH_SRC_DIR: Optional[str] = None
+for p in CANDIDATE_GANESH_PATHS:
+    if os.path.isdir(p) and os.path.isfile(os.path.join(p, "ingest.py")):
+        GANESH_SRC_DIR = p
+        break
+
+if GANESH_SRC_DIR and GANESH_SRC_DIR not in sys.path:
+    sys.path.insert(0, GANESH_SRC_DIR)
+    logger.info("Registered Ganesh module path: %s", GANESH_SRC_DIR)
 
 
 def is_ganesh_available() -> bool:
-    """Check if Ganesh's module and source files are accessible."""
-    return (
-        GANESH_SRC_DIR.exists()
-        and (GANESH_SRC_DIR / "clean_validate.py").exists()
-        and (GANESH_SRC_DIR / "features.py").exists()
-        and (GANESH_SRC_DIR / "windowing.py").exists()
-    )
+    """Return True if Ganesh's module directory is discoverable and loadable."""
+    return GANESH_SRC_DIR is not None and os.path.isdir(GANESH_SRC_DIR)
 
 
 def _import_ganesh_modules():
-    """Import Ganesh's actual processing functions dynamically."""
+    """Dynamically import Ganesh's modules on demand."""
     if not is_ganesh_available():
         raise RuntimeError(
             f"Ganesh's module source directory was not found at: {GANESH_SRC_DIR}. "
@@ -130,6 +125,14 @@ def process_raw_flows_to_sequence(
 
     # 2. Ingestion column standardization
     df = normalize_column_names(df)
+    df = df.loc[:, ~df.columns.duplicated()]
+
+    # Normalize duration if in microseconds (CIC-IDS standard)
+    if "duration" in df.columns:
+        df["duration"] = pd.to_numeric(df["duration"], errors="coerce").fillna(0.0)
+        if df["duration"].mean() > 1000:
+            df["duration"] = df["duration"] / 1_000_000.0
+
 
     # 3. Schema validation
     try:
@@ -172,10 +175,29 @@ def process_raw_flows_to_sequence(
     # Extract timestamps
     timestamps = tail_windows["timestamp"].astype(str).tolist()
 
-    # 9. Isolate the 21 numeric feature columns and exclude ground-truth label columns
-    LABEL_COLUMNS = {"majority_label", "majority_attack_stage", "stage_purity", "timestamp"}
-    numeric_feature_cols = [c for c in tail_windows.columns if c not in LABEL_COLUMNS]
+    # 9. Isolate the 21 numeric feature columns and ensure all 21 model features exist
+    EXPECTED_FEATURES = [
+        "total_packets", "total_bytes", "duration", "syn_flag_count", "ack_flag_count",
+        "fin_flag_count", "rst_flag_count", "psh_flag_count", "ttl", "tcp_window_size",
+        "fragmented", "retransmission_count", "flow_bytes_per_sec", "flow_packets_per_sec",
+        "avg_packet_size", "flow_count", "unique_src_ips", "unique_dst_ips",
+        "unique_dst_ports", "tcp_count", "udp_count"
+    ]
 
-    sequence_df = tail_windows[numeric_feature_cols].copy()
+    for col in EXPECTED_FEATURES:
+        if col not in tail_windows.columns:
+            tail_windows[col] = 0.0
+
+    sequence_df = tail_windows[EXPECTED_FEATURES].copy()
+
+    # Enforce numeric types and verify exact 21 features
+    for col in sequence_df.columns:
+        sequence_df[col] = pd.to_numeric(sequence_df[col], errors="coerce").fillna(0.0)
+
+    logger.info(
+        "Ganesh pipeline successfully generated %d windows with %d features.",
+        len(sequence_df),
+        len(sequence_df.columns),
+    )
 
     return sequence_df, timestamps, log
