@@ -1,0 +1,58 @@
+{
+  "model_version": "message-baseline-1.0.0",
+  "model_type": "TF-IDF + Logistic Regression",
+  "training_examples": 50,
+  "classes": [
+    "MALICIOUS",
+    "PHISHING",
+    "SAFE",
+    "SCAM",
+    "SPAM"
+  ],
+  "training_note": "Curated offline baseline for controlled demonstration; replace with a validated larger dataset/DistilBERT model for production.",
+  "training_report": {
+    "MALICIOUS": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 10.0
+    },
+    "PHISHING": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 10.0
+    },
+    "SAFE": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 10.0
+    },
+    "SCAM": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 10.0
+    },
+    "SPAM": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 10.0
+    },
+    "accuracy": 1.0,
+    "macro avg": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 50.0
+    },
+    "weighted avg": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 50.0
+    }
+  }
+}

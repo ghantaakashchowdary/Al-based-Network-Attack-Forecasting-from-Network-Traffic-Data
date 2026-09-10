@@ -1,0 +1,188 @@
+# 🛡️ AEGIS-AI SOC: AI-Based Network Attack Forecasting from Network Traffic Data
+
+> **Smart India Hackathon (SIH) 2026 Project**  
+> *A high-performance cybersecurity operations center platform designed to visualize AI-generated network attack forecasts.*
+
+---
+
+## 🌟 Key Highlights
+
+1. **Above-The-Fold Clarity:** Immediate visibility into **Current Risk Level**, **Forecasted Attack Vector**, **Lead-Time Horizon ($T+15\text{m}$ to $T+60\text{m}$)**, and **AI Confidence Score**.
+2. **Predictive Forecasting vs Reactive IDS:** Multi-step attack progression trajectories ($T_0 \to T+5\text{m} \to T+15\text{m} \to T+30\text{m} \to T+60\text{m}$).
+3. **Transparent Explainability (XAI):** Mathematical TreeSHAP feature attribution and human-readable natural language justification.
+4. **1-Click Evaluation Playground:** Pre-loaded SIH attack datasets (*DDoS SYN Flood*, *Slowloris HTTP*, *APT Port Recon*, *Ransomware C2*, *Nominal Baseline*).
+
+---
+
+## 🎨 Color Coding Standard
+
+- 🟢 **Safe:** Emerald Green (`#10B981`) — Nominal baseline operations
+- 🟡 **Warning:** Amber Yellow (`#F59E0B`) — Low-volume reconnaissance / port probes
+- 🟠 **Elevated Risk:** Vivid Orange (`#F97316`) — Stealth keep-alive socket starvation
+- 🔴 **Critical Threat:** Crimson Rose (`#EF4444`) — Volumetric saturation & C2 exfiltration
+
+---
+
+## 🚀 6 Core Application Screens
+
+| # | Screen | Description |
+|---|---|---|
+| **1** | **Dashboard** | 10-Second Hero section, Overall Risk Gauge (0-100), Active Threat Profile, Trajectory mini-chart, Top 4 Flow KPIs, Real-time Pipeline Health, and Quick Mitigation buttons. |
+| **2** | **Traffic Analysis** | Protocol breakdown (TCP/UDP/TLS/DNS/ICMP), Top Talkers IP Geolocation & ASN threat reputation, and CIC-IDS2017 interactive table with search, filters, and socket inspector. |
+| **3** | **Attack Forecast** | Multi-step temporal horizon selector ($T_0 \to T+60\text{m}$), attack progression stages, unmitigated vs mitigated risk curve, and competing vector probabilities. |
+| **4** | **Explainability (XAI)** | Plain-English CISO reasoning synthesis, TreeSHAP feature attribution waterfall, MITRE ATT&CK micro-evidence rule violations, and Bi-LSTM + GNN benchmark metrics. |
+| **5** | **Prediction History** | 30-day forecast audit logs, accuracy and lead-time trendlines, incident post-mortem playback, and instant CISO PDF/CSV report exporter. |
+| **6** | **Demo Upload** | Drag-and-drop PCAP/CSV ingestion zone, 4-stage pipeline animation (Header Parsing $\to$ 78 Flow Features $\to$ Bi-LSTM $\to$ SHAP), and 1-click SIH Demo Scenario launcher. |
+
+---
+
+## 🛠️ Complete Backend & AI Forecasting Engine
+
+### 1. Python Environment & Setup
+```powershell
+py -3.11 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install --upgrade pip
+pip install -r requirements.txt
+```
+
+### 2. Start FastAPI Server
+```powershell
+uvicorn api:app --host 0.0.0.0 --port 8000
+```
+
+### 3. Start Firebase Cloud Functions
+```powershell
+cd firebase/functions
+npm install
+npm run build
+cd ..
+firebase emulators:start
+```
+
+### 4. Running Verification Tests
+```powershell
+python -m pytest -v
+```
+
+# SentinelAI Next-Level Extension
+
+This repository now extends the original SIH26153 network attack forecasting system instead of replacing it.
+
+## Existing SIH26153 capability retained
+- Ganesh network ingestion and 5-second time-windowing
+- 21-feature network-state representation used by the existing model
+- Madhav multi-task PyTorch LSTM
+- Multi-step attack probability and attack-stage forecasting
+- Existing `/predict` and `/predict/raw-flows` APIs
+
+## New SentinelAI capabilities
+- Offline message threat model with `SAFE`, `SPAM`, `PHISHING`, `SCAM`, `MALICIOUS` categories
+- URL evidence analysis without contacting external reputation services
+- Deterministic context-fusion policy: `ALLOW`, `WARN`, `QUARANTINE`, `BLOCK`
+- End-to-end `/security/analyze` API
+- Auditable JSONL security-event timeline at `data/security_events.jsonl`
+- React Message Security controlled test console
+- SOC Incident Center
+- Backend health telemetry for the message model and policy version
+
+## Run locally
+
+### Backend
+
+```bash
+python -m pip install -r requirements.txt
+uvicorn api:app --reload --port 8000
+```
+
+### Frontend
+
+```bash
+npm install
+npm run dev
+```
+
+The frontend defaults to `http://localhost:8000`. Set `VITE_API_BASE_URL` in `.env` when deploying elsewhere.
+
+## Controlled message demo
+
+Open **Message Security** in the dashboard and use the included safe/phishing/scam/malicious scenarios. These are synthetic test messages; no real malicious campaign or live phishing link is required.
+
+## API examples
+
+### Analyze a message
+
+`POST /message/analyze`
+
+```json
+{
+  "text": "Urgent: verify your password immediately.",
+  "url": "http://192.0.2.10/verify",
+  "sender": "Security-Test"
+}
+```
+
+### Full security flow
+
+`POST /security/analyze`
+
+```json
+{
+  "text": "Urgent: verify your password immediately.",
+  "url": "http://192.0.2.10/verify",
+  "sender": "Security-Test",
+  "network_risk": 0.72
+}
+```
+
+The response contains message evidence, message risk, network context, composite risk, policy action and an audit ID.
+
+## Important scope
+
+The Android/SMS protection layer is represented by a controlled test-console and backend decision contract in this repository. It does not claim universal interception or blocking of SMS, WhatsApp, Telegram, email, or other messaging applications. A future Android module should use a platform-supported integration path.
+
+The included message model is a demonstration baseline, not a production phishing detector. Evaluation should use a larger representative dataset and report precision, recall, F1, false-positive rate and latency before any production claim.
+
+
+## Real-world mobile connection extension
+
+The project now includes a controlled Android Mobile Gateway under `mobile/android`.
+
+### Mobile flow
+
+```text
+Android SMS / controlled test message
+            |
+            v
+     SentinelAI Mobile App
+            |
+            | POST /mobile/events
+            v
+       FastAPI Gateway
+            |
+     +------+------+
+     |             |
+ Message AI     Network Risk
+     |             |
+     +------+------+
+            v
+      Context Fusion
+            v
+      Policy Engine
+            v
+ ALLOW / WARN / QUARANTINE / BLOCK
+            |
+            +--> Security audit JSONL
+            +--> SOC Incident Center
+```
+
+### New mobile APIs
+
+- `POST /mobile/devices/register`
+- `POST /mobile/devices/heartbeat`
+- `GET /mobile/devices`
+- `POST /mobile/events`
+
+The Android client is a proof-of-concept gateway. It can receive SMS through Android's platform-supported `SMS_RECEIVED` permission path and forward the message to SentinelAI. It does not claim universal interception or blocking of other messaging applications.
+
+For a physical phone, start FastAPI with `--host 0.0.0.0`, allow the local development port through the firewall if necessary, and configure the phone with the computer's LAN IP instead of `localhost`.

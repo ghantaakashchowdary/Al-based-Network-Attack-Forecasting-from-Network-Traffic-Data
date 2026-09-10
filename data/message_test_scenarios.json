@@ -1,0 +1,6 @@
+[
+  {"name":"safe","text":"Hi team, the project review is moved to 3 PM today.","url":"","network_risk":0.08},
+  {"name":"phishing","text":"URGENT: Your account is suspended. Verify your password immediately.","url":"http://192.0.2.10/verify","network_risk":0.72},
+  {"name":"scam","text":"You won a cash award. Pay the processing fee to release the funds.","url":"https://claim.example.test/reward","network_risk":0.35},
+  {"name":"malicious","text":"Disable antivirus protection and execute the attached script as administrator.","url":"https://files.example.test/setup","network_risk":0.64}
+]
