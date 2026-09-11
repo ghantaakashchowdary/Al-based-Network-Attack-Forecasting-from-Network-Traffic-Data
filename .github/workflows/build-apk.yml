@@ -3,9 +3,6 @@ name: Build Android APK
 on:
   push:
     branches: [ "main" ]
-    paths:
-      - 'mobile/android/**'
-      - '.github/workflows/build-apk.yml'
   workflow_dispatch:
 
 jobs:
@@ -31,39 +28,49 @@ jobs:
         run: yes | sdkmanager --licenses || true
 
       - name: Install Android SDK components
-        run: |
-          sdkmanager "platforms;android-34" "build-tools;34.0.0"
+        run: sdkmanager "platforms;android-34" "build-tools;34.0.0"
 
       - name: Generate Gradle Wrapper
         working-directory: mobile/android
-        run: |
-          gradle wrapper --gradle-version 8.9
+        run: gradle wrapper --gradle-version 8.9
 
       - name: Build Debug APK
         working-directory: mobile/android
         run: |
           chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon --info 2>&1 | tail -100
+          ./gradlew assembleDebug --no-daemon
 
-      - name: List APK outputs
-        if: success()
-        run: find mobile/android/app/build/outputs -name "*.apk" -type f 2>/dev/null || echo "No APK found"
+      - name: Find and rename APK
+        id: find_apk
+        run: |
+          APK_PATH=$(find mobile/android -name "*.apk" -type f | head -1)
+          echo "Found APK at: $APK_PATH"
+          if [ -n "$APK_PATH" ]; then
+            mkdir -p apk-output
+            cp "$APK_PATH" apk-output/SentinelAI-Mobile.apk
+            echo "apk_found=true" >> $GITHUB_OUTPUT
+          else
+            echo "apk_found=false" >> $GITHUB_OUTPUT
+            echo "ERROR: No APK file found!"
+            find mobile/android/app/build -type f -name "*.apk" 2>/dev/null || echo "No build outputs"
+            exit 1
+          fi
 
       - name: Upload APK Artifact
-        if: success()
+        if: steps.find_apk.outputs.apk_found == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: SentinelAI-Mobile-APK
-          path: mobile/android/app/build/outputs/apk/debug/*.apk
+          path: apk-output/SentinelAI-Mobile.apk
 
       - name: Create GitHub Release with APK
-        if: success() && github.ref == 'refs/heads/main'
+        if: steps.find_apk.outputs.apk_found == 'true' && github.ref == 'refs/heads/main'
         uses: softprops/action-gh-release@v2
         continue-on-error: true
         with:
           tag_name: latest-apk
           name: SentinelAI Mobile Android APK (Latest)
           body: "Official SentinelAI Android Mobile Gateway APK. Download and install on your phone for real-time SMS & Notification threat scanning."
-          files: mobile/android/app/build/outputs/apk/debug/*.apk
+          files: apk-output/SentinelAI-Mobile.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
