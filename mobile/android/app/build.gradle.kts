@@ -5,12 +5,12 @@ plugins {
 
 android {
     namespace = "com.sentinelai.mobile"
-    compileSdk = 35
+    compileSdk = 34
 
     defaultConfig {
         applicationId = "com.sentinelai.mobile"
         minSdk = 26
-        targetSdk = 35
+        targetSdk = 34
         versionCode = 1
         versionName = "1.0"
     }
