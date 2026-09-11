@@ -36,50 +36,26 @@ jobs:
 
       - name: Build Debug APK
         working-directory: mobile/android
-        shell: bash {0}
         run: |
           chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon --stacktrace 2>&1 | tee /tmp/build.log
-          EXIT_CODE=${PIPESTATUS[0]}
-          echo "Gradle exit code: $EXIT_CODE"
-          find . -name "*.apk" -type f | tee -a /tmp/build.log
-          APK_COUNT=$(find . -name "*.apk" -type f | wc -l)
-          if [ "$APK_COUNT" -gt 0 ]; then
-            echo "APK_FOUND=true" >> $GITHUB_ENV
-            exit 0
-          else
-            echo "APK_FOUND=false" >> $GITHUB_ENV
-            echo "=== ERRORS ===" >> /tmp/build.log
-            grep -i "error\|FAILED\|Exception\|cannot find" /tmp/build.log | tail -30 >> /tmp/build-errors.log 2>/dev/null || true
-            exit $EXIT_CODE
-          fi
-
-      - name: Upload build logs (always)
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-logs
-          path: /tmp/build*.log
-          if-no-files-found: ignore
+          ./gradlew :app:assembleDebug --no-daemon --stacktrace
 
       - name: Package APK
-        if: env.APK_FOUND == 'true'
         run: |
           APK_PATH=$(find mobile/android -name "*.apk" -type f | head -1)
-          echo "APK at: $APK_PATH"
+          echo "APK found at: $APK_PATH"
           mkdir -p apk-output
           cp "$APK_PATH" apk-output/SentinelAI-Mobile.apk
           ls -lh apk-output/
 
       - name: Upload APK Artifact
-        if: env.APK_FOUND == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: SentinelAI-Mobile-APK
           path: apk-output/SentinelAI-Mobile.apk
 
       - name: Create GitHub Release with APK
-        if: env.APK_FOUND == 'true' && github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main'
         uses: softprops/action-gh-release@v2
         continue-on-error: true
         with:

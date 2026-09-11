@@ -477,10 +477,10 @@ class MainActivity : Activity() {
         setPadding(0, dp(16), 0, dp(6))
     }
 
-    private data class HttpResult(val code: Int, val body: String)
+    data class HttpResult(val code: Int, val body: String)
 
     companion object {
-        private const val PREFS = "sentinelai"
+        const val PREFS = "sentinelai"
         private const val REQUEST_SMS_PERMISSION = 4101
         private const val REQUEST_NOTIFICATION_PERMISSION = 4102
 
