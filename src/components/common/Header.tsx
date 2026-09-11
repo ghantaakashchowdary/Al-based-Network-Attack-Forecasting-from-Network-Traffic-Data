@@ -166,24 +166,24 @@ export const Header: React.FC = () => {
               </div>
 
               {/* Option 2: Native Android App (.APK) */}
-              <div className="p-4 rounded-xl border border-slate-800 bg-slate-950/60">
+              <div className="p-4 rounded-xl border border-emerald-800/60 bg-emerald-950/20">
                 <div className="flex items-center justify-between gap-2 mb-1">
-                  <h4 className="font-bold text-sm text-slate-200">Android Native App Source</h4>
-                  <span className="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full font-mono">
-                    mobile/android
+                  <h4 className="font-bold text-sm text-emerald-300">Native Android App (.APK)</h4>
+                  <span className="text-[10px] bg-emerald-900/80 text-emerald-200 border border-emerald-700 px-2 py-0.5 rounded-full font-semibold">
+                    Compiled & Ready
                   </span>
                 </div>
-                <p className="text-xs text-slate-400 mb-3">
-                  Complete Kotlin source code for SMS and Notification listener is included in your repository.
+                <p className="text-xs text-slate-300 mb-3">
+                  Full protection with automatic SMS interception & real-time notification threat scanning.
                 </p>
                 <a
-                  href="https://github.com/ghantaakashchowdary/Al-based-Network-Attack-Forecasting-from-Network-Traffic-Data/tree/main/mobile/android"
+                  href="https://github.com/ghantaakashchowdary/Al-based-Network-Attack-Forecasting-from-Network-Traffic-Data/actions/runs/34583361682"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 font-semibold text-xs flex items-center justify-center gap-2 transition"
+                  className="w-full py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-emerald-900/30 transition"
                 >
-                  <ExternalLink className="w-3.5 h-3.5" />
-                  <span>View & Build Android Source in GitHub</span>
+                  <Download className="w-4 h-4" />
+                  <span>Download SentinelAI-Mobile-APK (810 KB)</span>
                 </a>
               </div>
             </div>
