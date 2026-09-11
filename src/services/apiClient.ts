@@ -231,3 +231,20 @@ export async function registerMobileDevice(payload: {
 export async function mobileHeartbeat(device_id: string): Promise<MobileDevice> {
   return requestJson<MobileDevice>("/mobile/devices/heartbeat", { device_id }, 10000);
 }
+
+export async function deleteMobileDevice(device_id: string): Promise<void> {
+  const response = await fetch(`${getApiBaseUrl()}/mobile/devices/${device_id}`, {
+    method: "DELETE",
+    headers: COMMON_HEADERS,
+  });
+  if (!response.ok) throw new ApiError(`Failed to delete mobile device (${response.status})`, response.status);
+}
+
+export async function deleteSecurityEvent(event_id: string): Promise<void> {
+  const response = await fetch(`${getApiBaseUrl()}/security/events/${event_id}`, {
+    method: "DELETE",
+    headers: COMMON_HEADERS,
+  });
+  if (!response.ok) throw new ApiError(`Failed to delete security event (${response.status})`, response.status);
+}
+

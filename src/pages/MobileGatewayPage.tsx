@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { Smartphone, Wifi, WifiOff, RefreshCw, ShieldCheck, Radio, Copy, CheckCircle2 } from "lucide-react";
-import { API_BASE_URL, getMobileDevices, registerMobileDevice } from "../services/apiClient";
+import { Smartphone, Wifi, WifiOff, RefreshCw, ShieldCheck, Radio, Copy, CheckCircle2, Trash2 } from "lucide-react";
+import { API_BASE_URL, getMobileDevices, registerMobileDevice, deleteMobileDevice } from "../services/apiClient";
 import { MobileDevice } from "../types/api";
 
 export const MobileGatewayPage: React.FC = () => {
@@ -36,6 +36,15 @@ export const MobileGatewayPage: React.FC = () => {
       });
       setDevices(prev => [device, ...prev.filter(d => d.device_id !== device.device_id)]);
     } finally { setLoading(false); }
+  };
+
+  const removeDevice = async (deviceId: string) => {
+    try {
+      await deleteMobileDevice(deviceId);
+    } catch {
+      // Remove locally anyway
+    }
+    setDevices((prev) => prev.filter((d) => d.device_id !== deviceId));
   };
 
   const online = devices.filter(d => d.status === "ONLINE").length;
@@ -82,7 +91,19 @@ export const MobileGatewayPage: React.FC = () => {
                 </div>
                 <div><div className="font-bold text-sm">{d.name}</div><div className="text-xs text-slate-500">{d.model} · {d.os_version}</div><div className="text-[10px] font-mono text-slate-600 mt-1">ID {d.device_id}</div></div>
               </div>
-              <div className="text-right"><span className={`text-[10px] px-2 py-1 rounded-full font-bold ${d.status === "ONLINE" ? "bg-emerald-950 text-emerald-300" : "bg-slate-800 text-slate-500"}`}>{d.status}</span><div className="text-[10px] text-slate-600 mt-2">last seen {new Date(d.last_seen).toLocaleString()}</div></div>
+              <div className="flex items-center gap-4 justify-between md:justify-end">
+                <div className="text-right">
+                  <span className={`text-[10px] px-2 py-1 rounded-full font-bold ${d.status === "ONLINE" ? "bg-emerald-950 text-emerald-300" : "bg-slate-800 text-slate-500"}`}>{d.status}</span>
+                  <div className="text-[10px] text-slate-600 mt-2">last seen {new Date(d.last_seen).toLocaleString()}</div>
+                </div>
+                <button
+                  onClick={() => removeDevice(d.device_id)}
+                  title="Delete Device"
+                  className="p-2 rounded-lg bg-rose-950/40 hover:bg-rose-900/60 border border-rose-900/60 text-rose-300 hover:text-rose-100 transition shrink-0"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
             </div>
           ))}</div>
         )}

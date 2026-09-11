@@ -81,3 +81,15 @@ def list_devices() -> list[dict[str, Any]]:
         if changed:
             _save(devices)
         return devices
+
+
+def delete_device(device_id: str) -> bool:
+    with _lock:
+        devices = _load()
+        initial_count = len(devices)
+        devices = [d for d in devices if d.get("device_id") != device_id]
+        if len(devices) < initial_count:
+            _save(devices)
+            return True
+        return False
+

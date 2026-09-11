@@ -19,8 +19,8 @@ from pydantic import BaseModel, Field
 from src.forecasting.inference import Forecaster
 from message_ai.inference import MessageThreatModel
 from security.policy import decide as policy_decide
-from security.audit import record_event, list_events
-from security.mobile import register_device, heartbeat, list_devices
+from security.audit import record_event, list_events, delete_event
+from security.mobile import register_device, heartbeat, list_devices, delete_device
 
 logging.basicConfig(
     level=logging.INFO,
@@ -736,6 +736,15 @@ def security_events(limit: int = 50):
     return {"events": list_events(limit)}
 
 
+@app.delete("/security/events/{event_id}")
+def delete_security_event_endpoint(event_id: str):
+    """Delete a security event / message record from the audit log."""
+    success = delete_event(event_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Security event not found")
+    return {"status": "deleted", "event_id": event_id}
+
+
 
 @app.post("/mobile/devices/register", response_model=MobileDeviceResponse)
 def mobile_register(request_data: MobileDeviceRegisterRequest):
@@ -761,6 +770,15 @@ def mobile_heartbeat(request_data: MobileDeviceHeartbeatRequest):
 def mobile_devices():
     """Return registered mobile devices and their current connection state."""
     return list_devices()
+
+
+@app.delete("/mobile/devices/{device_id}")
+def delete_mobile_device_endpoint(device_id: str):
+    """Unregister / delete a mobile device from the device registry."""
+    success = delete_device(device_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Mobile device not found")
+    return {"status": "deleted", "device_id": device_id}
 
 
 @app.post("/mobile/events", response_model=SecurityAnalyzeResponse)

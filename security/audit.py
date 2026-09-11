@@ -39,3 +39,25 @@ def record_event(payload: dict) -> dict:
 
 def list_events(limit: int = 50) -> list[dict]:
     return _read_events(max(1, min(limit, 200)))
+
+
+def delete_event(event_id: str) -> bool:
+    if not AUDIT_FILE.exists():
+        return False
+    with _lock:
+        lines = AUDIT_FILE.read_text(encoding="utf-8").splitlines()
+        new_lines = []
+        deleted = False
+        for line in lines:
+            try:
+                data = json.loads(line)
+                if data.get("event_id") == event_id:
+                    deleted = True
+                    continue
+                new_lines.append(line)
+            except json.JSONDecodeError:
+                new_lines.append(line)
+        if deleted:
+            AUDIT_FILE.write_text("\n".join(new_lines) + ("\n" if new_lines else ""), encoding="utf-8")
+        return deleted
+

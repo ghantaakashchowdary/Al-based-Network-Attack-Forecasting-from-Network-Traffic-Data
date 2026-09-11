@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
 import { HealthResponse, PredictionResponse, PredictSequenceRequest, PredictRawFlowsRequest, MessageAnalyzeRequest, MessageAnalyzeResponse, SecurityAnalyzeResponse, SecurityEvent } from "../types/api";
-import { getHealth, predictSequence, predictRawFlows, analyzeMessage, analyzeSecurity, getSecurityEvents, getApiBaseUrl, setCustomApiUrl } from "../services/apiClient";
+import { getHealth, predictSequence, predictRawFlows, analyzeMessage, analyzeSecurity, getSecurityEvents, deleteSecurityEvent, getApiBaseUrl, setCustomApiUrl } from "../services/apiClient";
 
 export interface PredictionHistoryItem {
   id: string;
@@ -47,6 +47,7 @@ interface ApiContextType {
   runSecurityAnalysis: (payload: MessageAnalyzeRequest) => Promise<SecurityAnalyzeResponse>;
   securityEvents: SecurityEvent[];
   refreshSecurityEvents: () => Promise<void>;
+  removeSecurityEvent: (eventId: string) => Promise<void>;
   setApiEndpoint: (url: string) => void;
 }
 
@@ -201,6 +202,15 @@ export const ApiProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     setPredictionError(null);
   };
 
+  const removeSecurityEvent = useCallback(async (eventId: string) => {
+    try {
+      await deleteSecurityEvent(eventId);
+    } catch {
+      // remove locally anyway
+    }
+    setSecurityEvents((prev) => prev.filter((e) => e.event_id !== eventId));
+  }, []);
+
   const setApiEndpoint = useCallback((url: string) => {
     setCustomApiUrl(url);
     setApiBaseUrlState(getApiBaseUrl());
@@ -236,6 +246,7 @@ export const ApiProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         runSecurityAnalysis,
         securityEvents,
         refreshSecurityEvents,
+        removeSecurityEvent,
         setApiEndpoint,
       }}
     >
