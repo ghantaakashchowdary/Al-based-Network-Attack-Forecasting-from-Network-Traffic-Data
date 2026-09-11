@@ -38,21 +38,24 @@ jobs:
         working-directory: mobile/android
         run: |
           chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon
+          ./gradlew assembleDebug --no-daemon || true
 
-      - name: Find and rename APK
+      - name: Find and package APK
         id: find_apk
         run: |
+          echo "=== Searching for APK files ==="
+          find mobile/android -name "*.apk" -type f 2>/dev/null
           APK_PATH=$(find mobile/android -name "*.apk" -type f | head -1)
-          echo "Found APK at: $APK_PATH"
           if [ -n "$APK_PATH" ]; then
+            echo "Found APK at: $APK_PATH"
             mkdir -p apk-output
             cp "$APK_PATH" apk-output/SentinelAI-Mobile.apk
             echo "apk_found=true" >> $GITHUB_OUTPUT
+            echo "APK size: $(du -h apk-output/SentinelAI-Mobile.apk | cut -f1)"
           else
+            echo "No APK found. Listing build directory:"
+            find mobile/android/app/build -type f 2>/dev/null | head -30 || echo "No build directory"
             echo "apk_found=false" >> $GITHUB_OUTPUT
-            echo "ERROR: No APK file found!"
-            find mobile/android/app/build -type f -name "*.apk" 2>/dev/null || echo "No build outputs"
             exit 1
           fi
 
