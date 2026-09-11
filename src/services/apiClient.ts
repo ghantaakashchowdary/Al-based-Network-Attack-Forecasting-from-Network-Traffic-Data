@@ -3,12 +3,32 @@ import {
   MessageAnalyzeRequest, MessageAnalyzeResponse, SecurityAnalyzeResponse, SecurityEventsResponse, MobileDevice,
 } from "../types/api";
 
-// Base API URL configured from environment variable or dynamic host (supports PC & mobile browsers seamlessly)
-const defaultApiHost = typeof window !== "undefined" && window.location.hostname
-  ? `http://${window.location.hostname}:8000`
-  : "http://localhost:8000";
+// Base API URL resolution: localStorage override -> env variable -> local network host -> localhost
+export function getApiBaseUrl(): string {
+  if (typeof window !== "undefined") {
+    const custom = localStorage.getItem("sentinelai_api_url");
+    if (custom && custom.trim()) return custom.trim().replace(/\/$/, "");
+  }
+  if (import.meta.env.VITE_API_BASE_URL) {
+    return (import.meta.env.VITE_API_BASE_URL as string).replace(/\/$/, "");
+  }
+  if (typeof window !== "undefined" && window.location.hostname && !window.location.hostname.includes("web.app") && !window.location.hostname.includes("firebaseapp.com")) {
+    return `http://${window.location.hostname}:8000`;
+  }
+  return "http://localhost:8000";
+}
 
-export const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || defaultApiHost).replace(/\/$/, "");
+export function setCustomApiUrl(url: string): void {
+  if (typeof window !== "undefined") {
+    if (!url || !url.trim()) {
+      localStorage.removeItem("sentinelai_api_url");
+    } else {
+      localStorage.setItem("sentinelai_api_url", url.trim().replace(/\/$/, ""));
+    }
+  }
+}
+
+export const API_BASE_URL = getApiBaseUrl();
 
 const COMMON_HEADERS: HeadersInit = {
   "Content-Type": "application/json",
@@ -35,7 +55,7 @@ export async function getHealth(timeoutMs = 8000): Promise<HealthResponse> {
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
-    const response = await fetch(`${API_BASE_URL}/health`, {
+    const response = await fetch(`${getApiBaseUrl()}/health`, {
       method: "GET",
       headers: COMMON_HEADERS,
       signal: controller.signal,
@@ -72,7 +92,7 @@ export async function predictSequence(
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
-    const response = await fetch(`${API_BASE_URL}/predict`, {
+    const response = await fetch(`${getApiBaseUrl()}/predict`, {
       method: "POST",
       headers: COMMON_HEADERS,
       body: JSON.stringify(payload),
@@ -118,7 +138,7 @@ export async function predictRawFlows(
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
-    const response = await fetch(`${API_BASE_URL}/predict/raw-flows`, {
+    const response = await fetch(`${getApiBaseUrl()}/predict/raw-flows`, {
       method: "POST",
       headers: COMMON_HEADERS,
       body: JSON.stringify(payload),
@@ -163,7 +183,7 @@ export async function analyzeSecurity(payload: MessageAnalyzeRequest, timeoutMs 
 }
 
 export async function getSecurityEvents(limit = 50): Promise<SecurityEventsResponse> {
-  const response = await fetch(`${API_BASE_URL}/security/events?limit=${limit}`, { headers: COMMON_HEADERS });
+  const response = await fetch(`${getApiBaseUrl()}/security/events?limit=${limit}`, { headers: COMMON_HEADERS });
   if (!response.ok) throw new ApiError(`Failed to load security events (${response.status})`, response.status);
   return response.json();
 }
@@ -172,7 +192,7 @@ async function requestJson<T>(path: string, payload: unknown, timeoutMs: number)
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    const response = await fetch(`${API_BASE_URL}${path}`, {
+    const response = await fetch(`${getApiBaseUrl()}${path}`, {
       method: "POST",
       headers: COMMON_HEADERS,
       body: JSON.stringify(payload),
@@ -194,7 +214,7 @@ async function requestJson<T>(path: string, payload: unknown, timeoutMs: number)
 }
 
 export async function getMobileDevices(): Promise<MobileDevice[]> {
-  const response = await fetch(`${API_BASE_URL}/mobile/devices`, { headers: COMMON_HEADERS });
+  const response = await fetch(`${getApiBaseUrl()}/mobile/devices`, { headers: COMMON_HEADERS });
   if (!response.ok) throw new ApiError(`Failed to load mobile devices (${response.status})`, response.status);
   return response.json();
 }

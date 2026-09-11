@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
 import { HealthResponse, PredictionResponse, PredictSequenceRequest, PredictRawFlowsRequest, MessageAnalyzeRequest, MessageAnalyzeResponse, SecurityAnalyzeResponse, SecurityEvent } from "../types/api";
-import { getHealth, predictSequence, predictRawFlows, analyzeMessage, analyzeSecurity, getSecurityEvents, API_BASE_URL } from "../services/apiClient";
+import { getHealth, predictSequence, predictRawFlows, analyzeMessage, analyzeSecurity, getSecurityEvents, getApiBaseUrl, setCustomApiUrl } from "../services/apiClient";
 
 export interface PredictionHistoryItem {
   id: string;
@@ -47,11 +47,13 @@ interface ApiContextType {
   runSecurityAnalysis: (payload: MessageAnalyzeRequest) => Promise<SecurityAnalyzeResponse>;
   securityEvents: SecurityEvent[];
   refreshSecurityEvents: () => Promise<void>;
+  setApiEndpoint: (url: string) => void;
 }
 
 const ApiContext = createContext<ApiContextType | undefined>(undefined);
 
 export const ApiProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const [apiBaseUrl, setApiBaseUrlState] = useState<string>(getApiBaseUrl());
   const [health, setHealth] = useState<HealthResponse | null>(null);
   const [isBackendOnline, setIsBackendOnline] = useState<boolean>(false);
   const [healthError, setHealthError] = useState<string | null>(null);
@@ -199,10 +201,18 @@ export const ApiProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     setPredictionError(null);
   };
 
+  const setApiEndpoint = useCallback((url: string) => {
+    setCustomApiUrl(url);
+    setApiBaseUrlState(getApiBaseUrl());
+    setTimeout(() => {
+      refreshHealth();
+    }, 50);
+  }, [refreshHealth]);
+
   return (
     <ApiContext.Provider
       value={{
-        apiBaseUrl: API_BASE_URL,
+        apiBaseUrl,
         health,
         isBackendOnline,
         healthError,
@@ -226,6 +236,7 @@ export const ApiProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         runSecurityAnalysis,
         securityEvents,
         refreshSecurityEvents,
+        setApiEndpoint,
       }}
     >
       {children}
