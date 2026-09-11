@@ -3,6 +3,9 @@ name: Build Android APK
 on:
   push:
     branches: [ "main" ]
+    paths:
+      - 'mobile/android/**'
+      - '.github/workflows/build-apk.yml'
   workflow_dispatch:
 
 jobs:
@@ -24,32 +27,38 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Accept Android SDK Licenses & Install Platform 34
-        run: |
-          yes | sdkmanager --licenses || true
-          sdkmanager "platforms;android-34" "build-tools;34.0.0" || true
+      - name: Accept Android SDK Licenses
+        run: yes | sdkmanager --licenses || true
 
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v3
-        with:
-          gradle-version: '8.10.2'
+      - name: Install Android SDK components
+        run: |
+          sdkmanager "platforms;android-34" "build-tools;34.0.0"
+
+      - name: Generate Gradle Wrapper
+        working-directory: mobile/android
+        run: |
+          gradle wrapper --gradle-version 8.9
 
       - name: Build Debug APK
+        working-directory: mobile/android
         run: |
-          cd mobile/android
-          gradle wrapper --gradle-version 8.10.2
           chmod +x gradlew
-          ./gradlew :app:assembleDebug --no-daemon --stacktrace
+          ./gradlew assembleDebug --no-daemon --info 2>&1 | tail -100
+
+      - name: List APK outputs
+        if: success()
+        run: find mobile/android/app/build/outputs -name "*.apk" -type f 2>/dev/null || echo "No APK found"
 
       - name: Upload APK Artifact
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: SentinelAI-Mobile-APK
           path: mobile/android/app/build/outputs/apk/debug/*.apk
 
-      - name: Create or Update GitHub Release with APK
+      - name: Create GitHub Release with APK
+        if: success() && github.ref == 'refs/heads/main'
         uses: softprops/action-gh-release@v2
-        if: github.ref == 'refs/heads/main'
         continue-on-error: true
         with:
           tag_name: latest-apk
