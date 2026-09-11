@@ -34,6 +34,8 @@ const MainContent: React.FC = () => {
         return <RawTrafficUploadPage setActiveTab={setActiveTab} />;
       case "message-security":
         return <MessageSecurityPage />;
+      case "mobile-gateway":
+        return <MobileGatewayPage />;
       case "incidents":
         return <IncidentCenterPage />;
       case "system-status":

@@ -24,6 +24,9 @@ COPY api.py .
 COPY src/ ./src/
 COPY artifacts/ ./artifacts/
 COPY ganesh_module/ ./ganesh_module/
+COPY message_ai/ ./message_ai/
+COPY security/ ./security/
+COPY data/ ./data/
 
 # SentinelAI security modules
 COPY security/ ./security/

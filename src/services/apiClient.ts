@@ -3,8 +3,12 @@ import {
   MessageAnalyzeRequest, MessageAnalyzeResponse, SecurityAnalyzeResponse, SecurityEventsResponse, MobileDevice,
 } from "../types/api";
 
-// Base API URL configured from environment variable
-export const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || "http://localhost:8000").replace(/\/$/, "");
+// Base API URL configured from environment variable or dynamic host (supports PC & mobile browsers seamlessly)
+const defaultApiHost = typeof window !== "undefined" && window.location.hostname
+  ? `http://${window.location.hostname}:8000`
+  : "http://localhost:8000";
+
+export const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || defaultApiHost).replace(/\/$/, "");
 
 const COMMON_HEADERS: HeadersInit = {
   "Content-Type": "application/json",
