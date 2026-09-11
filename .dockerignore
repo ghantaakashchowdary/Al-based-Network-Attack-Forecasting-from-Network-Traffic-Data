@@ -9,7 +9,6 @@ __pycache__/
 firebase/
 firebase-debug.log
 firestore-debug.log
-data/
 tests/
 walkthrough.md
 implementation_plan.md

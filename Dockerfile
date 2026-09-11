@@ -17,20 +17,17 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu && \
     pip install --no-cache-dir -r requirements.txt
 
-# Main API
-COPY api.py .
+# Create data directory
+RUN mkdir -p /app/data
 
-# Existing network forecasting model
+# Copy application files
+COPY api.py .
 COPY src/ ./src/
 COPY artifacts/ ./artifacts/
 COPY ganesh_module/ ./ganesh_module/
 COPY message_ai/ ./message_ai/
 COPY security/ ./security/
 COPY data/ ./data/
-
-# SentinelAI security modules
-COPY security/ ./security/
-COPY message_ai/ ./message_ai/
 
 EXPOSE 8080
 
