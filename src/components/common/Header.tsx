@@ -177,13 +177,13 @@ export const Header: React.FC = () => {
                   Full protection with automatic SMS interception & real-time notification threat scanning.
                 </p>
                 <a
-                  href="https://github.com/ghantaakashchowdary/Al-based-Network-Attack-Forecasting-from-Network-Traffic-Data/actions/runs/34583361682"
+                  href="https://github.com/ghantaakashchowdary/Al-based-Network-Attack-Forecasting-from-Network-Traffic-Data/releases/download/v1.0.0/SentinelAI-Mobile.apk"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-full py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-emerald-900/30 transition"
                 >
                   <Download className="w-4 h-4" />
-                  <span>Download SentinelAI-Mobile-APK (810 KB)</span>
+                  <span>Direct Download SentinelAI-Mobile.apk (810 KB)</span>
                 </a>
               </div>
             </div>

@@ -54,14 +54,14 @@ jobs:
           name: SentinelAI-Mobile-APK
           path: apk-output/SentinelAI-Mobile.apk
 
-      - name: Create GitHub Release with APK
-        if: github.ref == 'refs/heads/main'
+      - name: Create Public GitHub Release with APK
         uses: softprops/action-gh-release@v2
         continue-on-error: true
         with:
-          tag_name: latest-apk
-          name: SentinelAI Mobile Android APK (Latest)
-          body: "Official SentinelAI Android Mobile Gateway APK. Download and install on your phone."
+          tag_name: v1.0.0
+          name: SentinelAI Mobile Gateway v1.0.0
+          body: "Official SentinelAI Android Mobile Gateway APK. Public 1-tap download for any Android phone."
           files: apk-output/SentinelAI-Mobile.apk
+          make_latest: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
