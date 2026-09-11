@@ -113,16 +113,16 @@ export const Header: React.FC = () => {
 
       {/* Mobile App Download & Install Modal */}
       {showDownloadModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in">
-          <div className="bg-slate-900 border border-slate-700 rounded-2xl max-w-lg w-full p-6 shadow-2xl relative">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
+          <div className="bg-slate-900 border border-slate-700 rounded-2xl max-w-lg w-full max-h-[88vh] flex flex-col p-5 sm:p-6 shadow-2xl relative overflow-hidden">
             <button
               onClick={() => setShowDownloadModal(false)}
-              className="absolute top-4 right-4 text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition"
+              className="absolute top-4 right-4 text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-slate-800 transition z-10"
             >
               <X className="w-5 h-5" />
             </button>
 
-            <div className="flex items-center gap-3 mb-4">
+            <div className="flex items-center gap-3 mb-4 shrink-0">
               <div className="p-3 rounded-xl bg-cyan-950 border border-cyan-800 text-cyan-400">
                 <Smartphone className="w-6 h-6" />
               </div>
@@ -132,51 +132,66 @@ export const Header: React.FC = () => {
               </div>
             </div>
 
-            <div className="space-y-4 text-sm">
+            <div className="space-y-4 text-xs sm:text-sm overflow-y-auto pr-1 flex-1">
               {/* Feature Highlights */}
               <div className="bg-slate-950/80 rounded-xl p-3 border border-slate-800 space-y-2">
-                <div className="flex items-start gap-2 text-xs text-slate-300">
+                <div className="flex items-start gap-2 text-slate-300">
                   <Bell className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
                   <span><strong>WhatsApp & Messenger Notifications:</strong> Live risk inspection for scam & phishing links in messaging notifications.</span>
                 </div>
-                <div className="flex items-start gap-2 text-xs text-slate-300">
+                <div className="flex items-start gap-2 text-slate-300">
                   <ShieldAlert className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
                   <span><strong>SMS Security Gateway:</strong> Automatic SMS attack detection with instant AI quarantine policy.</span>
                 </div>
               </div>
 
-              {/* Download Option 1: Native Android APK */}
-              <div className="p-4 rounded-xl border border-cyan-800/60 bg-cyan-950/30 flex items-center justify-between gap-4">
-                <div>
-                  <h4 className="font-bold text-sm text-cyan-200">Android App (.APK)</h4>
-                  <p className="text-xs text-slate-400 mt-0.5">Full protection with SMS & Notification scanning</p>
+              {/* Option 1: Instant Web App (PWA) - Recommended */}
+              <div className="p-4 rounded-xl border border-cyan-800/80 bg-cyan-950/40">
+                <div className="flex items-center justify-between gap-2 mb-2">
+                  <h4 className="font-bold text-sm text-cyan-300 flex items-center gap-2">
+                    <ExternalLink className="w-4 h-4 text-cyan-400" />
+                    <span>Instant Mobile Web App (PWA)</span>
+                  </h4>
+                  <span className="text-[10px] bg-cyan-900/60 text-cyan-200 border border-cyan-700 px-2 py-0.5 rounded-full font-semibold">
+                    1-Tap Install
+                  </span>
                 </div>
-                <a
-                  href="/downloads/sentinelai-mobile.apk"
-                  download="SentinelAI-Mobile.apk"
-                  className="px-4 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs flex items-center gap-2 transition shrink-0"
-                >
-                  <Download className="w-4 h-4" />
-                  <span>Download APK</span>
-                </a>
+                <p className="text-slate-300 text-xs mb-3">
+                  Runs like a native full-screen app directly on your phone without needing any APK download!
+                </p>
+                <div className="bg-slate-950/90 rounded-lg p-2.5 border border-slate-800 text-[11px] text-slate-300 space-y-1">
+                  <p>👉 In <strong>Chrome on Mobile</strong>: Tap the <strong>three dots (⋮)</strong> at top-right ➔ tap <strong>"Install app"</strong> or <strong>"Add to Home screen"</strong>.</p>
+                  <p>👉 In <strong>Safari (iPhone)</strong>: Tap <strong>Share (⎋)</strong> ➔ tap <strong>"Add to Home Screen"</strong>.</p>
+                </div>
               </div>
 
-              {/* Download Option 2: Web App (PWA) */}
-              <div className="p-4 rounded-xl border border-slate-800 bg-slate-950/50">
-                <h4 className="font-bold text-sm text-slate-200 flex items-center gap-2">
-                  <ExternalLink className="w-4 h-4 text-cyan-400" />
-                  <span>Instant Web App (Chrome / Safari)</span>
-                </h4>
-                <p className="text-xs text-slate-400 mt-1">
-                  In Chrome on mobile, tap the <strong>three dots (⋮)</strong> at the top right and select <strong>"Install app"</strong> or <strong>"Add to Home screen"</strong> to use it as a standalone app!
+              {/* Option 2: Native Android App (.APK) */}
+              <div className="p-4 rounded-xl border border-slate-800 bg-slate-950/60">
+                <div className="flex items-center justify-between gap-2 mb-1">
+                  <h4 className="font-bold text-sm text-slate-200">Android Native App Source</h4>
+                  <span className="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full font-mono">
+                    mobile/android
+                  </span>
+                </div>
+                <p className="text-xs text-slate-400 mb-3">
+                  Complete Kotlin source code for SMS and Notification listener is included in your repository.
                 </p>
+                <a
+                  href="https://github.com/ghantaakashchowdary/Al-based-Network-Attack-Forecasting-from-Network-Traffic-Data/tree/main/mobile/android"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 font-semibold text-xs flex items-center justify-center gap-2 transition"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  <span>View & Build Android Source in GitHub</span>
+                </a>
               </div>
             </div>
 
-            <div className="mt-6 flex justify-end">
+            <div className="mt-4 pt-3 border-t border-slate-800 flex justify-end shrink-0">
               <button
                 onClick={() => setShowDownloadModal(false)}
-                className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold"
+                className="px-5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold"
               >
                 Close
               </button>
