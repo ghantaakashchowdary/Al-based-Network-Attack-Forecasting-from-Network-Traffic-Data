@@ -38,36 +38,41 @@ jobs:
         working-directory: mobile/android
         run: |
           chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon || true
-
-      - name: Find and package APK
-        id: find_apk
-        run: |
-          echo "=== Searching for APK files ==="
-          find mobile/android -name "*.apk" -type f 2>/dev/null
-          APK_PATH=$(find mobile/android -name "*.apk" -type f | head -1)
-          if [ -n "$APK_PATH" ]; then
-            echo "Found APK at: $APK_PATH"
-            mkdir -p apk-output
-            cp "$APK_PATH" apk-output/SentinelAI-Mobile.apk
-            echo "apk_found=true" >> $GITHUB_OUTPUT
-            echo "APK size: $(du -h apk-output/SentinelAI-Mobile.apk | cut -f1)"
+          set +e
+          ./gradlew assembleDebug --no-daemon 2>&1 | tee /tmp/gradle-output.log
+          GRADLE_EXIT=$?
+          echo "Gradle exit code: $GRADLE_EXIT"
+          echo "=== Last 50 lines of build output ==="
+          tail -50 /tmp/gradle-output.log
+          echo "=== Searching for APK ==="
+          find . -name "*.apk" -type f 2>/dev/null
+          APK_COUNT=$(find . -name "*.apk" -type f 2>/dev/null | wc -l)
+          if [ "$APK_COUNT" -gt 0 ]; then
+            echo "APK found! Build considered successful despite exit code $GRADLE_EXIT"
+            exit 0
           else
-            echo "No APK found. Listing build directory:"
-            find mobile/android/app/build -type f 2>/dev/null | head -30 || echo "No build directory"
-            echo "apk_found=false" >> $GITHUB_OUTPUT
+            echo "No APK produced. Build failed."
+            echo "=== Full error output ==="
+            grep -i "error\|FAILED\|Exception" /tmp/gradle-output.log | head -30
             exit 1
           fi
 
+      - name: Package APK
+        run: |
+          APK_PATH=$(find mobile/android -name "*.apk" -type f | head -1)
+          echo "APK at: $APK_PATH"
+          mkdir -p apk-output
+          cp "$APK_PATH" apk-output/SentinelAI-Mobile.apk
+          echo "APK size: $(du -h apk-output/SentinelAI-Mobile.apk | cut -f1)"
+
       - name: Upload APK Artifact
-        if: steps.find_apk.outputs.apk_found == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: SentinelAI-Mobile-APK
           path: apk-output/SentinelAI-Mobile.apk
 
       - name: Create GitHub Release with APK
-        if: steps.find_apk.outputs.apk_found == 'true' && github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main'
         uses: softprops/action-gh-release@v2
         continue-on-error: true
         with:
